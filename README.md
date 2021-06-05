@@ -1,5 +1,3 @@
-### Hi there 👋
-
 <h1 align="center">Hi 👋, I'm Hasun Nilupul</h1>
 <h3 align="center">A passionate full-stack developer from Sri Lanka</h3>
 
