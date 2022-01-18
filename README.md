@@ -7,7 +7,7 @@
 
 <p align="left"> <a href="https://twitter.com/rahnilupul" target="blank"><img src="https://img.shields.io/twitter/follow/rahnilupul?logo=twitter&style=for-the-badge" alt="rahnilupul" /></a> </p>
 
-- 🌱 I’m currently learning **Laravel | Vue.js**
+- 🌱 I’m currently learning **Laravel | Vue.js | Spring boot**
 
 - 💬 Ask me about **Java | PHP | CSS | HTML | Laravel | Vue.js | JS | Android**
 
