@@ -7,13 +7,13 @@
 
 <p align="left"> <a href="https://twitter.com/rahnilupul" target="blank"><img src="https://img.shields.io/twitter/follow/rahnilupul?logo=twitter&style=for-the-badge" alt="rahnilupul" /></a> </p>
 
-- 🌱 I’m currently learning **Laravel | Vue.js | Spring boot**
+- 🌱 I’m currently learning **Angular | React.js | Spring boot**
 
-- 💬 Ask me about **Java | PHP | CSS | HTML | Laravel | Vue.js | JS | Android**
+- 💬 Ask me about **Java | PHP | CSS | HTML | Laravel | Vue.js | React.js | Angular | JS | Android**
 
 - 📫 How to reach me **hasunnilupul16@gmail.com**
 
-- ⚡ Fun fact **I think I am funny and ready for challenges**
+- ⚡ Fun fact **I am ready for challenges**
 
 <h3 align="left">Connect with me:</h3>
 <p align="left">
