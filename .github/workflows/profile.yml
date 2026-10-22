@@ -1,0 +1,52 @@
+name: Refresh profile
+
+on:
+  schedule:
+    - cron: '17 1 * * *' # daily, 06:47 in Sri Lanka
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - '.github/workflows/profile.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: profile
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # STATS_TOKEN is optional: a fine-grained token with read-only access makes
+      # private contributions count too. Without it, public activity is used.
+      - name: Render cards
+        run: node scripts/render.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.STATS_TOKEN || secrets.GITHUB_TOKEN }}
+
+      - name: Render contribution snake
+        uses: Platane/snk/svg-only@v3
+        with:
+          github_user_name: ${{ github.repository_owner }}
+          outputs: |
+            assets/dark/snake.svg?color_snake=#C6FF3D&color_dots=#1F2126,#33500F,#5C8C18,#92C62A,#C6FF3D
+            assets/light/snake.svg?color_snake=#E85FD0&color_dots=#ECE8DD,#DCF4A2,#AEDD4F,#77A81C,#3F6B0A
+
+      - name: Commit changes
+        run: |
+          sudo chown -R "$(id -u):$(id -g)" assets
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets README.md
+          git diff --cached --quiet || git commit -m 'docs: refresh profile stats'
+          git push
