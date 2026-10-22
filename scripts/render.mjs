@@ -1,38 +1,17 @@
 // Renders the profile README's images in the portfolio's look (nilupulperera.dev):
 // same palette, fonts, sparkles and squiggles, in a dark and a light variant.
 //
-//   node scripts/render.mjs            static art + live GitHub cards (needs GITHUB_TOKEN)
-//   node scripts/render.mjs --sample   same, with sample GitHub data (for local previews)
-//   node scripts/render.mjs --static   static art only (header, section titles, stack, ...)
-//
-// The live cards and the "Latest activity" list in README.md are refreshed daily
-// by .github/workflows/profile.yml.
+//   node scripts/render.mjs
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const LOGIN = 'hasunnilupul';
-const args = new Set(process.argv.slice(2));
 
 // ---------------------------------------------------------------------------
 // Content — kept in step with the portfolio
 // ---------------------------------------------------------------------------
-
-const FEATURED = [
-  {
-    name: 'Micro Loan Manager',
-    tag: 'Full-stack Web App',
-    summary: 'A loan management system for microfinance teams, from borrower onboarding through repayment, delinquency tracking and portfolio reporting.',
-    image: 'microloan-overview.jpg',
-    stack: ['React', 'TypeScript', 'NestJS', 'PostgreSQL'],
-    cta: 'Live demo ↗',
-  },
-  { repo: 'kiln', tag: 'Open Source' },
-  { repo: 'personal-finance-tracker', tag: 'Web App' },
-  { repo: 'web-image-compressor', tag: 'Tool' },
-];
 
 const EXPERIENCE = [
   {
@@ -88,10 +67,7 @@ const SECTIONS = {
   about: ['01 / About', 'About Me'],
   experience: ['02 / Experience', "Where I've Worked"],
   stack: ['03 / Skills', 'My Skills'],
-  projects: ['04 / Projects', 'Featured Projects'],
-  github: ['05 / GitHub', 'On GitHub'],
-  activity: ['06 / Activity', 'Latest Activity'],
-  connect: ['07 / Contact', "Let's Work Together"],
+  connect: ['04 / Contact', "Let's Work Together"],
 };
 
 // ---------------------------------------------------------------------------
@@ -105,7 +81,6 @@ const THEMES = {
     accentInk: '#C6FF3D', pinkInk: '#E85FD0', cyanInk: '#46D2E8',
     border: 'rgba(255,255,255,0.08)', borderLoud: 'rgba(255,255,255,0.14)',
     onAccent: '#0D0D10', glow: 0.16,
-    heat: ['#1F2126', '#33500F', '#5C8C18', '#92C62A', '#C6FF3D'],
     icons: { next: 'nextjs-dark.svg', aws: 'aws-light.svg', tanstack: 'tanstack-query-dark.svg' },
   },
   light: {
@@ -114,13 +89,11 @@ const THEMES = {
     accentInk: '#3F6B0A', pinkInk: '#B8269E', cyanInk: '#08708A',
     border: 'rgba(20,20,20,0.08)', borderLoud: 'rgba(20,20,20,0.14)',
     onAccent: '#16181C', glow: 0.22,
-    heat: ['#ECE8DD', '#DCF4A2', '#AEDD4F', '#77A81C', '#3F6B0A'],
     icons: { next: 'nextjs-light.svg', aws: 'aws-dark.svg', tanstack: 'tanstack-query-light.svg' },
   },
 };
 
 const W = 880; // every image shares one width so they scale together in the README
-const HALF_H = 252; // half-width cards sit side by side, so they share a height
 
 const FONTS = {
   display: ['Baloo 2', [['baloo-2-latin-700-normal.woff2', 700], ['baloo-2-latin-800-normal.woff2', 800]]],
@@ -223,14 +196,6 @@ function wrap(str, width, size, kind = 'sans', maxLines = 3) {
   }
   return lines;
 }
-
-const ago = (iso) => {
-  const s = (Date.now() - new Date(iso).getTime()) / 1000;
-  const units = [['y', 31536000], ['mo', 2592000], ['d', 86400], ['h', 3600], ['m', 60]];
-  for (const [u, n] of units) if (s >= n) return `${Math.floor(s / n)}${u} ago`;
-  return 'just now';
-};
-const fmt = (n) => (n >= 10000 ? `${(n / 1000).toFixed(1)}k` : n.toLocaleString('en-US'));
 
 // ---------------------------------------------------------------------------
 // Static art
@@ -433,331 +398,6 @@ ${icon(PATHS.star, W / 2 - 212, 44, 22, `fill="none" stroke="${t.pink}" stroke-w
 }
 
 // ---------------------------------------------------------------------------
-// GitHub data
-// ---------------------------------------------------------------------------
-
-const QUERY = `query($login: String!) {
-  user(login: $login) {
-    createdAt
-    followers { totalCount }
-    repositories(ownerAffiliations: OWNER, privacy: PUBLIC, isFork: false, first: 100, orderBy: {field: PUSHED_AT, direction: DESC}) {
-      totalCount
-      nodes {
-        name description url pushedAt stargazerCount forkCount
-        primaryLanguage { name color }
-        languages(first: 10, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name color } } }
-      }
-    }
-    pullRequests { totalCount }
-    contributionsCollection {
-      totalCommitContributions totalPullRequestContributions totalIssueContributions
-      totalPullRequestReviewContributions restrictedContributionsCount
-      contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } }
-    }
-  }
-}`;
-
-async function gh(path, init = {}) {
-  const res = await fetch(`https://api.github.com${path}`, {
-    ...init,
-    headers: { authorization: `bearer ${process.env.GITHUB_TOKEN}`, 'user-agent': LOGIN, ...init.headers },
-  });
-  if (!res.ok) throw new Error(`${path}: ${res.status} ${await res.text()}`);
-  return res.json();
-}
-
-async function fetchGitHub() {
-  if (!process.env.GITHUB_TOKEN) throw new Error('GITHUB_TOKEN is not set (use --sample for a local preview)');
-  const { data, errors } = await gh('/graphql', { method: 'POST', body: JSON.stringify({ query: QUERY, variables: { login: LOGIN } }) });
-  if (errors) throw new Error(JSON.stringify(errors));
-  const events = await gh(`/users/${LOGIN}/events/public?per_page=60`);
-  return { user: data.user, events };
-}
-
-function sampleData() {
-  const day = 86400000, now = Date.now();
-  let seed = 7;
-  const rand = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
-  const weeks = Array.from({ length: 53 }, (_, w) => ({
-    contributionDays: Array.from({ length: 7 }, (_, d) => {
-      const r = rand(), busy = Math.sin(w / 6) + 1.2;
-      return { date: new Date(now - ((52 - w) * 7 + (6 - d)) * day).toISOString().slice(0, 10), contributionCount: r < 0.28 ? 0 : Math.floor(r * busy * 9) };
-    }),
-  }));
-  const repo = (name, description, lang, color, stars, daysAgo) => ({
-    name, description, url: `https://github.com/${LOGIN}/${name}`, pushedAt: new Date(now - daysAgo * day).toISOString(),
-    stargazerCount: stars, forkCount: Math.floor(stars / 3), primaryLanguage: { name: lang, color },
-    languages: { edges: [{ size: 50000 + stars * 9000, node: { name: lang, color } }, { size: 9000, node: { name: 'CSS', color: '#663399' } }] },
-  });
-  return {
-    user: {
-      followers: { totalCount: 48 },
-      repositories: {
-        totalCount: 42,
-        nodes: [
-          repo('kiln', 'Sample description — the live card pulls the real one from GitHub.', 'TypeScript', '#3178c6', 6, 0.2),
-          repo('personal-finance-tracker', 'Sample description for the personal finance tracker.', 'TypeScript', '#3178c6', 3, 0.5),
-          repo('grocerry-flow', 'Sample description.', 'Vue', '#41b883', 2, 6),
-          repo('web-image-compressor', 'Sample description for the image compressor.', 'JavaScript', '#f1e05a', 4, 129),
-          repo('finance-managaer-backend', 'Sample description.', 'PHP', '#4F5D95', 1, 199),
-          repo('shorty', 'Sample description.', 'Go', '#00ADD8', 2, 266),
-          repo('movana', 'Sample description.', 'JavaScript', '#f1e05a', 1, 267),
-        ],
-      },
-      pullRequests: { totalCount: 214 },
-      contributionsCollection: {
-        totalCommitContributions: 1043, totalPullRequestContributions: 96, totalIssueContributions: 21,
-        totalPullRequestReviewContributions: 58, restrictedContributionsCount: 0,
-        contributionCalendar: { totalContributions: weeks.flatMap((w) => w.contributionDays).reduce((a, d) => a + d.contributionCount, 0), weeks },
-      },
-    },
-    events: [
-      { type: 'PushEvent', repo: { name: `${LOGIN}/kiln` }, payload: { size: 3, ref: 'refs/heads/main' }, created_at: new Date(now - 0.1 * day).toISOString() },
-      { type: 'PullRequestEvent', repo: { name: `${LOGIN}/personal-finance-tracker` }, payload: { action: 'opened', number: 12, pull_request: { title: 'Sample pull request title', html_url: '#' } }, created_at: new Date(now - 0.4 * day).toISOString() },
-      { type: 'CreateEvent', repo: { name: `${LOGIN}/grocerry-flow` }, payload: { ref_type: 'repository' }, created_at: new Date(now - 6 * day).toISOString() },
-      { type: 'WatchEvent', repo: { name: 'vitejs/vite' }, payload: {}, created_at: new Date(now - 8 * day).toISOString() },
-    ],
-  };
-}
-
-function streaks(days) {
-  let longest = 0, run = 0;
-  for (const d of days) { run = d.contributionCount ? run + 1 : 0; longest = Math.max(longest, run); }
-  // Today may not have contributions yet; don't break the streak for it.
-  let current = 0;
-  for (let i = days.length - 1; i >= 0; i--) {
-    if (days[i].contributionCount) current++;
-    else if (i !== days.length - 1) break;
-  }
-  return { current, longest };
-}
-
-// ---------------------------------------------------------------------------
-// GitHub cards
-// ---------------------------------------------------------------------------
-
-function statsCard(t, user) {
-  const c = user.contributionsCollection;
-  const days = c.contributionCalendar.weeks.flatMap((w) => w.contributionDays);
-  const { current, longest } = streaks(days);
-  const stars = user.repositories.nodes.reduce((a, r) => a + r.stargazerCount, 0);
-  const tiles = [
-    ['Contributions', c.contributionCalendar.totalContributions, 'accent', 'last 12 months'],
-    ['Commits', c.totalCommitContributions + c.restrictedContributionsCount, 'pink', 'last 12 months'],
-    ['Pull requests', user.pullRequests.totalCount, 'cyan', 'all time'],
-    ['Reviews', c.totalPullRequestReviewContributions, 'accent', 'last 12 months'],
-    ['Current streak', `${current}d`, 'pink', `longest ${longest}d`],
-    ['Stars earned', stars, 'cyan', `${user.repositories.totalCount} public repos`],
-  ];
-  const cols = 3, tw = (W - 16 * (cols - 1)) / cols, th = 116;
-  const body = tiles.map(([label, value, color, note], i) => {
-    const x = (i % cols) * (tw + 16), y = Math.floor(i / cols) * (th + 16);
-    return `${card(t, x, y, tw, th, 18)}
-<rect x="${x + 22}" y="${y + 22}" width="22" height="4" rx="2" fill="${t[color]}"/>
-${text(x + 22, y + 48, esc(label.toUpperCase()), { cls: 'm', size: 11.5, weight: 500, fill: t.dim, ls: '1.2' })}
-${text(x + 20, y + 90, typeof value === 'number' ? fmt(value) : esc(value), { cls: 'd', size: 40, weight: 800, fill: t[`${color}Ink`] })}
-${text(x + tw - 22, y + 88, esc(note), { size: 12.5, weight: 600, fill: t.muted, anchor: 'end' })}`;
-  }).join('\n');
-  return svg({
-    h: 2 * th + 16,
-    title: tiles.map(([l, v, , n]) => `${l}: ${v} (${n})`).join('; '),
-    body,
-  });
-}
-
-function calendarCard(t, user) {
-  const cal = user.contributionsCollection.contributionCalendar;
-  const weeks = cal.weeks.slice(-53);
-  const all = weeks.flatMap((w) => w.contributionDays.map((d) => d.contributionCount)).filter(Boolean).sort((a, b) => a - b);
-  const q = (p) => all[Math.floor((all.length - 1) * p)] ?? 1;
-  const level = (n) => (!n ? 0 : n <= q(0.25) ? 1 : n <= q(0.5) ? 2 : n <= q(0.8) ? 3 : 4);
-  const size = 12, gap = 3, x0 = 52, y0 = 76;
-  const months = [];
-  const cells = weeks.map((w, wi) => {
-    const first = w.contributionDays[0];
-    const m = new Date(first.date).getUTCMonth();
-    if (wi < weeks.length - 2 && (wi === 0 ? new Date(first.date).getUTCDate() <= 7 : m !== new Date(weeks[wi - 1].contributionDays[0].date).getUTCMonth())) {
-      months.push(text(x0 + wi * (size + gap), y0 - 12, new Date(first.date).toLocaleString('en-US', { month: 'short', timeZone: 'UTC' }), { cls: 'm', size: 11, weight: 400, fill: t.dim }));
-    }
-    return w.contributionDays.map((d) => {
-      const di = new Date(d.date).getUTCDay();
-      return `<rect x="${x0 + wi * (size + gap)}" y="${y0 + di * (size + gap)}" width="${size}" height="${size}" rx="3" fill="${t.heat[level(d.contributionCount)]}"/>`;
-    }).join('');
-  }).join('\n');
-  const dayLabels = [[1, 'Mon'], [3, 'Wed'], [5, 'Fri']].map(([d, l]) => text(22, y0 + d * (size + gap) + 10, l, { cls: 'm', size: 10.5, weight: 400, fill: t.dim })).join('');
-  const ly = y0 + 7 * (size + gap) + 22;
-  const legend = t.heat.map((c, i) => `<rect x="${W - 168 + i * 16}" y="${ly - 10}" width="12" height="12" rx="3" fill="${c}"/>`).join('');
-  const h = ly + 24;
-  return svg({
-    h,
-    title: `${cal.totalContributions} contributions in the last year`,
-    body: `${card(t, 0, 0, W, h, 20)}
-${text(24, 40, `${fmt(cal.totalContributions)} contributions`, { cls: 'd', size: 22, weight: 700, fill: t.text })}
-${text(24 + measure(`${fmt(cal.totalContributions)} contributions`, 22, 'display') + 10, 40, 'in the last year', { size: 13.5, weight: 600, fill: t.muted })}
-${icon(PATHS.sparkle, W - 46, 20, 20, `fill="${t.pink}"`)}
-${months.join('')}
-${dayLabels}
-${cells}
-${text(W - 176, ly, 'Less', { cls: 'm', size: 11, weight: 400, fill: t.dim, anchor: 'end' })}${legend}${text(W - 84, ly, 'More', { cls: 'm', size: 11, weight: 400, fill: t.dim })}`,
-  });
-}
-
-function languagesCard(t, user) {
-  const totals = new Map();
-  for (const r of user.repositories.nodes) {
-    for (const { size, node } of r.languages.edges) {
-      const cur = totals.get(node.name) ?? { size: 0, color: node.color };
-      cur.size += size;
-      totals.set(node.name, cur);
-    }
-  }
-  const sorted = [...totals].sort((a, b) => b[1].size - a[1].size);
-  const top = sorted.slice(0, 7);
-  const rest = sorted.slice(7).reduce((a, [, v]) => a + v.size, 0);
-  if (rest) top.push(['Other', { size: rest, color: t.dim }]);
-  const sum = top.reduce((a, [, v]) => a + v.size, 0) || 1;
-  const cw = (W - 16) / 2, bw = cw - 48;
-  let bx = 24;
-  const bar = top.map(([, v]) => {
-    const w = (v.size / sum) * bw;
-    const out = `<rect x="${bx}" y="80" width="${Math.max(w, 0)}" height="12" fill="${v.color ?? t.dim}"/>`;
-    bx += w;
-    return out;
-  }).join('');
-  const legend = top.map(([name, v], i) => {
-    const x = 24 + (i % 2) * (bw / 2), y = 132 + Math.floor(i / 2) * 32;
-    return `<circle cx="${x + 5}" cy="${y - 4}" r="5" fill="${v.color ?? t.dim}"/>
-${text(x + 18, y, esc(name), { size: 13.5, weight: 700, fill: t.text })}
-${text(x + bw / 2 - 16, y, `${((v.size / sum) * 100).toFixed(1)}%`, { cls: 'm', size: 12, weight: 400, fill: t.dim, anchor: 'end' })}`;
-  }).join('\n');
-  const h = HALF_H;
-  return svg({
-    h,
-    title: `Most used languages: ${top.map(([n, v]) => `${n} ${((v.size / sum) * 100).toFixed(1)}%`).join(', ')}`,
-    body: `<defs><clipPath id="bar"><rect x="24" y="80" width="${bw}" height="12" rx="6"/></clipPath></defs>
-${card(t, 0, 0, cw, h, 20)}
-${text(24, 40, 'Top languages', { cls: 'd', size: 22, weight: 700, fill: t.text })}
-${text(cw - 24, 39, 'by code size', { cls: 'm', size: 11.5, weight: 400, fill: t.dim, anchor: 'end' })}
-<g clip-path="url(#bar)">${bar}</g>
-${legend}`,
-    // the card is half width; widen the canvas back to W so both halves scale alike
-  }).replace(`width="${W}" height="${h}" viewBox="0 0 ${W} ${h}"`, `width="${cw}" height="${h}" viewBox="0 0 ${cw} ${h}"`);
-}
-
-function recentCard(t, user) {
-  const repos = user.repositories.nodes.slice(0, 5);
-  const cw = (W - 16) / 2;
-  const rows = repos.map((r, i) => {
-    const y = 78 + i * 36;
-    const name = r.name.length > 26 ? `${r.name.slice(0, 25)}…` : r.name;
-    return `<circle cx="29" cy="${y - 4}" r="5" fill="${r.primaryLanguage?.color ?? t.dim}"/>
-${text(44, y, esc(name), { size: 14, weight: 700, fill: t.text })}
-${r.stargazerCount ? `${icon(PATHS.star, cw - 132, y - 13, 13, `fill="${t.accentInk}"`)}${text(cw - 115, y, String(r.stargazerCount), { cls: 'm', size: 12, weight: 500, fill: t.muted })}` : ''}
-${text(cw - 24, y, ago(r.pushedAt), { cls: 'm', size: 12, weight: 400, fill: t.dim, anchor: 'end' })}`;
-  }).join('\n');
-  const h = HALF_H;
-  return svg({
-    h,
-    title: `Recently pushed: ${repos.map((r) => r.name).join(', ')}`,
-    body: `${card(t, 0, 0, cw, h, 20)}
-${text(24, 40, 'Recently pushed', { cls: 'd', size: 22, weight: 700, fill: t.text })}
-${icon(PATHS.bolt, cw - 44, 20, 20, `fill="${t.accent}"`)}
-${rows}`,
-  }).replace(`width="${W}" height="${h}" viewBox="0 0 ${W} ${h}"`, `width="${cw}" height="${h}" viewBox="0 0 ${cw} ${h}"`);
-}
-
-const THUMBS = [
-  (t) => [t.pink, t.accent],
-  (t) => [t.cyan, t.pink],
-  (t) => [t.accent, t.cyan],
-];
-
-function projectCard(t, p, repo, i) {
-  const cw = (W - 16) / 2, th = 170;
-  const name = p.name ?? repo?.name ?? p.repo;
-  const summary = p.summary ?? repo?.description ?? 'Source on GitHub.';
-  const lines = wrap(summary, cw - 48, 14, 'sans', 3);
-  const [c1, c2] = THUMBS[i % THUMBS.length](t);
-  const thumb = p.image
-    ? `<image href="${dataUri(p.image)}" x="0" y="0" width="${cw}" height="${cw * 0.625}" preserveAspectRatio="xMinYMin slice" clip-path="url(#thumb${i})"/>`
-    : `<rect width="${cw}" height="${th}" fill="url(#grad${i})" clip-path="url(#thumb${i})"/>
-${text(cw - 26, th - 26, esc(name.split(/[-\s]/).map((s) => s[0]).join('').slice(0, 3).toUpperCase()), { cls: 'd', size: 64, weight: 800, fill: '#0D0D10', anchor: 'end', extra: ' opacity=".18"' })}
-${icon(PATHS.sparkle, cw - 66, 22, 30, 'fill="#0D0D10" opacity=".25"')}`;
-  const tw = measure(p.tag, 13, 'sans') + 32;
-  const meta = repo
-    ? `<circle cx="29" cy="${th + 152 - 4}" r="5" fill="${repo.primaryLanguage?.color ?? t.dim}"/>
-${text(42, th + 152, esc(repo.primaryLanguage?.name ?? 'Code'), { size: 12.5, weight: 600, fill: t.muted })}
-${icon(PATHS.star, 132, th + 152 - 12, 13, `fill="${t.accentInk}"`)}${text(149, th + 152, String(repo.stargazerCount), { cls: 'm', size: 12, weight: 500, fill: t.muted })}
-${text(cw - 24, th + 152, `updated ${ago(repo.pushedAt)}`, { cls: 'm', size: 12, weight: 400, fill: t.dim, anchor: 'end' })}`
-    : text(24, th + 152, esc(p.stack.join(' · ')), { cls: 'm', size: 12, weight: 400, fill: t.dim });
-  const h = th + 176;
-  return svg({
-    h,
-    title: `${name}: ${summary}`,
-    body: `<defs><clipPath id="thumb${i}"><path d="M0 18a18 18 0 0 1 18-18h${cw - 36}a18 18 0 0 1 18 18v${th - 18}h-${cw}z"/></clipPath>
-<linearGradient id="grad${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>
-${card(t, 0, 0, cw, h, 18)}
-${thumb}
-<rect x="14" y="14" width="${tw}" height="34" rx="17" fill="${t.bg}"/>
-${text(14 + tw / 2, 36, esc(p.tag), { size: 13, weight: 600, fill: t.text, anchor: 'middle' })}
-<line x1="0" y1="${th}" x2="${cw}" y2="${th}" stroke="${t.border}" stroke-width="1.5"/>
-${text(24, th + 38, esc(name), { cls: 'd', size: 20, weight: 700, fill: t.text })}
-${lines.map((l, j) => text(24, th + 64 + j * 22, esc(l), { size: 14, weight: 500, fill: t.muted })).join('\n')}
-<line x1="24" y1="${th + 128}" x2="${cw - 24}" y2="${th + 128}" stroke="${t.border}" stroke-width="1"/>
-${meta}`,
-  }).replace(`width="${W}" height="${h}" viewBox="0 0 ${W} ${h}"`, `width="${cw}" height="${h}" viewBox="0 0 ${cw} ${h}"`);
-}
-
-function activityMarkdown(events) {
-  const repoLink = (name) => `[${name}](https://github.com/${name})`;
-  const date = (iso) => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
-  const lines = [];
-  for (const e of events) {
-    const r = repoLink(e.repo.name), p = e.payload ?? {};
-    let line;
-    switch (e.type) {
-      case 'PushEvent': {
-        const n = p.size ?? p.commits?.length ?? p.distinct_size;
-        const branch = p.ref?.replace('refs/heads/', '');
-        line = n
-          ? `⚡ Pushed ${n} commit${n === 1 ? '' : 's'} to ${r}${branch ? ` \`${branch}\`` : ''}`
-          : `⚡ Pushed to ${r}${branch ? ` \`${branch}\`` : ''}`;
-        break;
-      }
-      case 'PullRequestEvent':
-        if (!['opened', 'closed', 'reopened'].includes(p.action)) continue;
-        line = `${p.action === 'closed' && p.pull_request?.merged ? '🟣 Merged' : p.action === 'closed' ? '✖️ Closed' : '🔀 Opened'} PR [#${p.number}](${p.pull_request?.html_url}) in ${r}${p.pull_request?.title ? ` — ${p.pull_request.title}` : ''}`;
-        break;
-      case 'IssuesEvent':
-        if (!['opened', 'closed'].includes(p.action)) continue;
-        line = `${p.action === 'opened' ? '🐛 Opened' : '✅ Closed'} issue [#${p.issue?.number}](${p.issue?.html_url}) in ${r}`;
-        break;
-      case 'CreateEvent':
-        if (p.ref_type !== 'repository') continue;
-        line = `✨ Created ${r}`;
-        break;
-      case 'ReleaseEvent':
-        line = `🚀 Released [${p.release?.tag_name}](${p.release?.html_url}) of ${r}`;
-        break;
-      case 'WatchEvent':
-        line = `⭐ Starred ${r}`;
-        break;
-      case 'ForkEvent':
-        line = `🍴 Forked ${r}`;
-        break;
-      default:
-        continue;
-    }
-    line = line.replace(/\|/g, '\\|');
-    if (lines.at(-1)?.text === line) continue; // collapse repeated pushes
-    lines.push({ text: line, at: e.created_at });
-    if (lines.length === 6) break;
-  }
-  if (!lines.length) return '_Nothing public in the last few days._';
-  return lines.map((l) => `- ${l.text} <sub>· ${date(l.at)}</sub>`).join('\n');
-}
-
-// ---------------------------------------------------------------------------
 
 function write(theme, name, content) {
   const dir = join(ROOT, 'assets', theme);
@@ -776,21 +416,4 @@ function renderStatic() {
   }
 }
 
-async function renderLive() {
-  const { user, events } = args.has('--sample') ? sampleData() : await fetchGitHub();
-  const byName = new Map(user.repositories.nodes.map((r) => [r.name, r]));
-  for (const [name, t] of Object.entries(THEMES)) {
-    write(name, 'stats', statsCard(t, user));
-    write(name, 'calendar', calendarCard(t, user));
-    write(name, 'languages', languagesCard(t, user));
-    write(name, 'recent', recentCard(t, user));
-    FEATURED.forEach((p, i) => write(name, `project-${i + 1}`, projectCard(t, p, p.repo && byName.get(p.repo), i)));
-  }
-  const readmePath = join(ROOT, 'README.md');
-  const readme = readFileSync(readmePath, 'utf8');
-  const next = readme.replace(/(<!-- ACTIVITY:START -->)[\s\S]*?(<!-- ACTIVITY:END -->)/, `$1\n${activityMarkdown(events)}\n$2`);
-  writeFileSync(readmePath, next);
-}
-
 renderStatic();
-if (!args.has('--static')) await renderLive();
