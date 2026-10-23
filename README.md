@@ -8,9 +8,9 @@
 </a>
 
 <p align="center">
-  <a href="https://nilupulperera.dev"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-portfolio.svg"><img alt="Portfolio" src="assets/light/btn-portfolio.svg" height="42"></picture></a>
-  <a href="https://linkedin.com/in/hasunnilupul"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-linkedin.svg"><img alt="LinkedIn" src="assets/light/btn-linkedin.svg" height="42"></picture></a>
-  <a href="https://nilupulperera.dev/assets/Nilupul-Perera-Resume.pdf"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-resume.svg"><img alt="Resume" src="assets/light/btn-resume.svg" height="42"></picture></a>
+  <a href="https://nilupulperera.dev" target="_blank"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-portfolio.svg"><img alt="Portfolio" src="assets/light/btn-portfolio.svg" height="42"></picture></a>
+  <a href="https://linkedin.com/in/hasunnilupul" target="_blank"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-linkedin.svg"><img alt="LinkedIn" src="assets/light/btn-linkedin.svg" height="42"></picture></a>
+  <a href="https://nilupulperera.dev/assets/Nilupul-Perera-Resume.pdf" target="_blank"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-resume.svg"><img alt="Resume" src="assets/light/btn-resume.svg" height="42"></picture></a>
 </p>
 
 <br>
@@ -61,11 +61,11 @@ I'm Nilupul, a frontend-focused **Senior Software Engineer** who enjoys turning 
 Got a project, a role or just want to say hi? My inbox is open.
 
 <p>
-  <a href="https://nilupulperera.dev"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-portfolio.svg"><img alt="Portfolio" src="assets/light/btn-portfolio.svg" height="42"></picture></a>
-  <a href="mailto:nilupulpere@gmail.com"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-email.svg"><img alt="Email" src="assets/light/btn-email.svg" height="42"></picture></a>
-  <a href="https://linkedin.com/in/hasunnilupul"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-linkedin.svg"><img alt="LinkedIn" src="assets/light/btn-linkedin.svg" height="42"></picture></a>
-  <a href="https://hasunnilupul.medium.com/"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-medium.svg"><img alt="Medium" src="assets/light/btn-medium.svg" height="42"></picture></a>
-  <a href="https://dev.to/hasunnilupul"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-devto.svg"><img alt="DEV" src="assets/light/btn-devto.svg" height="42"></picture></a>
+  <a href="https://nilupulperera.dev" target="_blank"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-portfolio.svg"><img alt="Portfolio" src="assets/light/btn-portfolio.svg" height="42"></picture></a>
+  <a href="mailto:nilupulpere@gmail.com" target="_blank"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-email.svg"><img alt="Email" src="assets/light/btn-email.svg" height="42"></picture></a>
+  <a href="https://linkedin.com/in/hasunnilupul" target="_blank"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-linkedin.svg"><img alt="LinkedIn" src="assets/light/btn-linkedin.svg" height="42"></picture></a>
+  <a href="https://hasunnilupul.medium.com/" target="_blank"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-medium.svg"><img alt="Medium" src="assets/light/btn-medium.svg" height="42"></picture></a>
+  <a href="https://dev.to/hasunnilupul" target="_blank"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/dark/btn-devto.svg"><img alt="DEV" src="assets/light/btn-devto.svg" height="42"></picture></a>
 </p>
 
 <picture>
